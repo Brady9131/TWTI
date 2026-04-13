@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>台女音乐人格测试 TWTI</title>
+  <meta name="description" content="台女音乐人格测试：二十道情境题，匹配音乐气质与本命专辑。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <main class="app">
+    <header class="hero hero--intro" id="screen-intro">
+      <div class="hero-card">
+        <p class="eyebrow">TWTI · Taiwan Women Typology Indicator</p>
+        <h1>台女音乐人格测试</h1>
+        <p class="lede">二十道情境题，匹配你的「台女」音乐气质与本命专辑。</p>
+        <blockquote class="hero-quote">
+          <p>光谱而非标签，你是你或是妳都行。</p>
+        </blockquote>
+        <div class="hero-cta">
+          <button type="button" class="btn primary" id="btn-start">开始测试</button>
+          <p class="hint">约 4～6 分钟完成哦~</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="quiz hidden" id="screen-quiz" aria-live="polite">
+      <div class="quiz-top">
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <p class="q-index"><span id="q-current">1</span> / <span id="q-total">20</span></p>
+      </div>
+      <h2 class="question" id="question-text"></h2>
+      <ul class="options" id="options-list"></ul>
+      <div class="quiz-nav">
+        <button type="button" class="btn btn-nav" id="btn-prev" disabled aria-label="返回上一题">← 上一题</button>
+      </div>
+    </section>
+
+    <section class="loading hidden" id="screen-loading" aria-live="assertive">
+      <div class="loading-inner">
+        <div class="spinner" aria-hidden="true"></div>
+        <p class="loading-title">分析中…</p>
+        <p class="loading-sub">马上就好</p>
+      </div>
+    </section>
+
+    <section class="result hidden" id="screen-result">
+      <div class="result-sheet">
+      <div class="result-hero">
+        <p class="eyebrow">TWTI 测试结果</p>
+        <figure class="result-album-cover" id="result-album-cover-fig" hidden>
+          <a class="result-album-cover-link" id="result-album-cover-link" href="#" target="_blank" rel="noopener noreferrer" aria-label="在网易云音乐打开本命专辑">
+            <img
+              class="result-album-cover-img"
+              id="result-album-cover-img"
+              src=""
+              alt=""
+              width="640"
+              height="640"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+              referrerpolicy="no-referrer"
+            />
+          </a>
+        </figure>
+        <h2 class="result-name" id="result-name"></h2>
+        <p class="result-album" id="result-album"></p>
+        <p class="result-album-lyric-line" id="result-album-lyric-line"></p>
+        <p class="result-album-lyric-song" id="result-album-lyric-song"></p>
+      </div>
+
+      <div class="radar-card">
+        <h3>音乐光谱占比</h3>
+        <svg class="radar" id="radar-svg" viewBox="0 0 200 200" role="img" aria-label="音乐光谱四轴占比"></svg>
+        <ul class="radar-legend" id="radar-legend"></ul>
+      </div>
+
+      <div class="top3-card">
+        <h3>相似歌手</h3>
+        <ul class="top3-list" id="result-top3-list"></ul>
+      </div>
+
+      <div class="result-copy">
+        <h3 class="result-copy-title">人格锐评</h3>
+        <div class="result-blurb-card">
+          <p id="result-blurb" class="result-blurb-text"></p>
+        </div>
+      </div>
+
+      <div class="share-section">
+        <h3 class="share-title">保存与分享</h3>
+        <div class="share-grid">
+          <button type="button" class="btn share-btn" id="btn-save-image">保存卡片图片</button>
+          <button type="button" class="btn share-btn" id="btn-copy-share">复制分享文案</button>
+        </div>
+      </div>
+
+      <div class="netease-card">
+        <h3>专属于你的推荐专辑（网易云音乐）</h3>
+        <ul class="album-links" id="result-album-links"></ul>
+      </div>
+
+      <div class="result-actions">
+        <button type="button" class="btn primary" id="btn-retry">再测一次</button>
+      </div>
+      </div>
+    </section>
+  </main>
+  <footer class="foot">
+    <small>TWTI 台女音乐人格测试 · <span class="foot-refs">参考文献：MBTI / TSTI / SBTI</span></small>
+    <details class="foot-contact-details">
+      <summary class="foot-contact-summary">联系作者</summary>
+      <div class="foot-contact-panel">
+        <a class="foot-contact-mail" href="mailto:brady00529131@gmail.com">brady00529131@gmail.com</a>
+      </div>
+    </details>
+  </footer>
+  <script src="js/questions_bank.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

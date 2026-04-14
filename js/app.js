@@ -31,7 +31,8 @@ function spectrumDisplayPercents(basePercents) {
   return mapped.map((v) => Math.round(75 + ((v - lo) / span) * 20));
 }
 
-const ARTIST_ORDER_PUBLIC = [
+/** 全部本命候选人；并列匹配度时按此顺序优先 */
+const ARTIST_ORDER = [
   "anpu",
   "cheer",
   "lala",
@@ -47,9 +48,8 @@ const ARTIST_ORDER_PUBLIC = [
   "rainie",
   "cyndi",
   "alin",
+  "chenli",
 ];
-/** 含隐藏位陈粒（仅当四指标均为档位 2 时出现） */
-const ARTIST_ORDER = [...ARTIST_ORDER_PUBLIC, "chenli"];
 
 /**
  * 歌手四档画像：每维为 1 或 2（见题后分档规则）
@@ -186,11 +186,13 @@ function rankArtistsByProfileSimilarity(userTiers) {
   });
 }
 
-/** 结果页本命歌手：在公开池中均匀随机；四档全为 2 时仍为陈粒 */
-function pickResultArtistRandom(userTiers) {
-  if (userTiers.every((t) => t === 2)) return "chenli";
-  const pool = ARTIST_ORDER_PUBLIC;
-  return pool[Math.floor(Math.random() * pool.length)];
+/**
+ * 结果页本命歌手：与 ARTIST_PROFILE 四档匹配数最多者（tierMatchSimilarity 最大）。
+ * 并列时按 ARTIST_ORDER 中靠前歌手优先。
+ */
+function pickResultArtistByProfile(userTiers) {
+  const ranked = rankArtistsByProfileSimilarity(userTiers);
+  return ranked[0].id;
 }
 /** 网易云专辑 ID → 该专辑封面图（与 data 中 albums[].neteaseId 一一对应，避免仅用歌手默认图） */
 const NETEASE_ALBUM_COVER = {
@@ -256,7 +258,9 @@ function resolveAlbumCoverUrl(album, artist) {
   return (artist && artist.albumCoverUrl) || "";
 }
 
-/** 按用户四指标原始分总和在该歌手区间内归一化，均分映射到各张专辑 */
+/**
+ * 推荐区等：按用户原始分在该歌手分数区间内归一化后分桶选专辑（非均匀随机）。
+ */
 function pickAlbumMetaForNorm(artistId, dimSums) {
   const artist = ARTISTS[artistId];
   const albums = artist.albums || [];
@@ -269,6 +273,26 @@ function pickAlbumMetaForNorm(artistId, dimSums) {
   }
   const t = scoreFractionInArtistRange(dimSums, artistId);
   const idx = bucketIndexEven(t, albums.length);
+  const picked = albums[idx];
+  return {
+    title: picked.title,
+    neteaseId: picked.neteaseId || "",
+    coverUrl: resolveAlbumCoverUrl(picked, artist),
+  };
+}
+
+/** 结果页本命专辑：在该歌手 albums[] 中均匀随机 */
+function pickAlbumMetaUniformRandom(artistId) {
+  const artist = ARTISTS[artistId];
+  const albums = artist.albums || [];
+  if (!albums.length) {
+    return {
+      title: artist.album,
+      neteaseId: "",
+      coverUrl: artist.albumCoverUrl || "",
+    };
+  }
+  const idx = Math.floor(Math.random() * albums.length);
   const picked = albums[idx];
   return {
     title: picked.title,
@@ -1372,8 +1396,8 @@ const ARTISTS = {
     tagline: "独立唱作人，词曲一体，气质锋利又温柔。",
     traitsDetailed: `从民谣到独立流行，作品常带隐喻与情绪张力，现场与录音室都极具个人标签。`,
     blurb:
-      "四档拉满才解锁：独立、疗愈、态度与向内生长不必互殴——别人争主流与边缘，你只管调自己的音量；像谁不像谁，随他们吵去。",
-    inclusiveNote: "隐藏结局：四指标同档 2 时出现——像彩蛋，也像拒绝对号入座。",
+      "独立、疗愈、态度与向内生长不必互殴——别人争主流与边缘，你只管调自己的音量；像谁不像谁，随他们吵去。",
+    inclusiveNote: "同盟不必同声：锋利与温柔可以同屏，你认领自己的叙事就好。",
   },
 
 };
@@ -1546,10 +1570,10 @@ function goToPreviousQuestion() {
 function showResult() {
   const userTiers = dimsToTiers(dimTotals);
 
-  const winnerId = pickResultArtistRandom(userTiers);
+  const winnerId = pickResultArtistByProfile(userTiers);
   lastResultId = winnerId;
   const artist = ARTISTS[winnerId];
-  lastResultAlbum = pickAlbumMetaForNorm(winnerId, dimTotals);
+  lastResultAlbum = pickAlbumMetaUniformRandom(winnerId);
   const coverFig = document.getElementById("result-album-cover-fig");
   const coverImg = document.getElementById("result-album-cover-img");
   const coverLink = document.getElementById("result-album-cover-link");
@@ -1573,11 +1597,7 @@ function showResult() {
 
   const resultNameEl = document.getElementById("result-name");
   if (resultNameEl) {
-    if (artist.hidden) {
-      resultNameEl.innerHTML = `陈粒<span class="result-name-hidden-tag" aria-label="隐藏结局">（隐藏）</span>`;
-    } else {
-      resultNameEl.textContent = artist.name;
-    }
+    resultNameEl.textContent = artist.name;
   }
   document.getElementById("result-album").textContent = `本命专辑：${lastResultAlbum.title}`;
   lastHeroResonance = pickResonanceByAnswerPath(winnerId, artist, dimTotals, lastResultAlbum);
@@ -1630,9 +1650,7 @@ function showResult() {
 
   const combinedScores = getArtistProfileSimilarityScores(userTiers);
   const rankedAll = ARTIST_ORDER.map((id) => ({ id, score: combinedScores[id] })).sort((a, b) => b.score - a.score);
-  const top3 = rankedAll
-    .filter(({ id }) => id !== winnerId && (winnerId === "chenli" || id !== "chenli"))
-    .slice(0, 3);
+  const top3 = rankedAll.filter(({ id }) => id !== winnerId).slice(0, 3);
   const min3 = top3.length ? Math.min(...top3.map((x) => x.score)) : 0;
   const max3 = top3.length ? Math.max(...top3.map((x) => x.score)) : 1;
   const range3 = max3 - min3;
@@ -1701,7 +1719,7 @@ function getPageUrl() {
 function buildSharePayload() {
   const artist = ARTISTS[lastResultId];
   const url = getPageUrl();
-  const shareName = artist.hidden ? "陈粒（隐藏）" : artist.name;
+  const shareName = artist.name;
   const title = `【TWTI】我的台女音乐人格测试结果是「${shareName}」`;
   const pick = lastHeroResonance;
   const songLink = pick.neteaseSongId ? neteaseSongUrl(pick.neteaseSongId) : "";
@@ -1958,26 +1976,8 @@ async function drawSharePoster() {
   }
 
   ctx.fillStyle = "#f4f0f8";
-  if (artist.hidden) {
-    const main = "陈粒";
-    const tag = "（隐藏）";
-    ctx.font = `600 70px ${POSTER_FONT_STACK}`;
-    const w1 = ctx.measureText(main).width;
-    ctx.font = `500 34px ${POSTER_FONT_STACK}`;
-    const w2 = ctx.measureText(tag).width;
-    const tw = w1 + w2;
-    ctx.textAlign = "left";
-    ctx.font = `600 70px ${POSTER_FONT_STACK}`;
-    ctx.fillText(main, cx - tw / 2, cursorY);
-    ctx.font = `500 34px ${POSTER_FONT_STACK}`;
-    ctx.fillStyle = "#b8a8c8";
-    ctx.fillText(tag, cx - tw / 2 + w1, cursorY + 5);
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#f4f0f8";
-  } else {
-    ctx.font = `600 70px ${POSTER_FONT_STACK}`;
-    ctx.fillText(artist.name, cx, cursorY);
-  }
+  ctx.font = `600 70px ${POSTER_FONT_STACK}`;
+  ctx.fillText(artist.name, cx, cursorY);
 
   cursorY += 76;
   ctx.fillStyle = "#7dd3fc";

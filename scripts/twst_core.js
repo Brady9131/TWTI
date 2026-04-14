@@ -3,7 +3,7 @@ const SITE_TAGLINE = "测测你的台女音乐人格是谁";
 /** 四指标：态度、独立、疗愈、实验 */
 const DIM_COUNT = 4;
 
-const ARTIST_ORDER_PUBLIC = [
+const ARTIST_ORDER = [
   "anpu",
   "cheer",
   "lala",
@@ -19,9 +19,8 @@ const ARTIST_ORDER_PUBLIC = [
   "rainie",
   "cyndi",
   "alin",
+  "chenli",
 ];
-/** 含隐藏位陈粒（仅当四指标均为档位 2 时出现） */
-const ARTIST_ORDER = [...ARTIST_ORDER_PUBLIC, "chenli"];
 
 /**
  * 歌手四档画像：每维为 1 或 2（见题后分档规则）
@@ -129,9 +128,8 @@ function answerHistoryBeforeAlbum() {
   return (answerHistory || []).filter((e) => e.qIndex < ALBUM_QUESTION_INDEX);
 }
 
-/** 与 app.js 一致：本命在公开池中随机；四档全 2 → 陈粒 */
-function pickResultArtistRandom(userTiers) {
-  if (userTiers.every((t) => t === 2)) return "chenli";
-  const pool = ARTIST_ORDER_PUBLIC;
-  return pool[Math.floor(Math.random() * pool.length)];
+/** 与 app.js 一致：本命取 ARTIST_PROFILE 匹配度最高者 */
+function pickResultArtistByProfile(userTiers) {
+  const ranked = rankArtistsByProfileSimilarity(userTiers);
+  return ranked[0].id;
 }

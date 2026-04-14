@@ -498,18 +498,6 @@ h1 {
   -webkit-text-fill-color: transparent;
 }
 
-.result-name .result-name-hidden-tag {
-  font-size: 0.48em;
-  font-weight: 500;
-  vertical-align: 0.12em;
-  margin-left: 0.06em;
-  color: rgba(186, 170, 210, 0.92);
-  -webkit-text-fill-color: rgba(186, 170, 210, 0.92);
-  background: none;
-  -webkit-background-clip: border-box;
-  background-clip: border-box;
-}
-
 .result-album {
   font-size: 1.1rem;
   color: var(--accent2);

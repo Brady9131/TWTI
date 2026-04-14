@@ -2,6 +2,12 @@ const SITE_TAGLINE = "测测你的台女音乐人格是谁";
 
 const { QUESTIONS, MAX_DIM_RAW_SUMS } = window.TWTI_QUESTIONS_BANK;
 
+function trackEvent(eventName, params) {
+  if (typeof window !== "undefined" && typeof window.gtag === "function") {
+    window.gtag("event", eventName, params || {});
+  }
+}
+
 /** 各维原始分 ÷ 500（5 题×100）→ 0–100%，用于雷达与图例 */
 function userDimRawToPercent(dimRawTotals) {
   return dimRawTotals.map((r) => {
@@ -1687,6 +1693,13 @@ function showResult() {
     });
   }
 
+  trackEvent("finish_test", {
+    artist_id: winnerId,
+    artist_name: ARTISTS[winnerId] ? ARTISTS[winnerId].name : "",
+    album_id: lastResultAlbum && lastResultAlbum.neteaseId ? String(lastResultAlbum.neteaseId) : "",
+    album_title: lastResultAlbum && lastResultAlbum.title ? lastResultAlbum.title : "",
+  });
+
   showScreen("screen-result");
 }
 
@@ -1699,6 +1712,7 @@ function resetQuiz() {
 }
 
 document.getElementById("btn-start").addEventListener("click", () => {
+  trackEvent("start_test");
   resetQuiz();
 });
 
@@ -1707,6 +1721,7 @@ document.getElementById("btn-prev").addEventListener("click", () => {
 });
 
 document.getElementById("btn-retry").addEventListener("click", () => {
+  trackEvent("retry_test");
   resetQuiz();
 });
 
@@ -2050,6 +2065,9 @@ async function savePosterToFile() {
       a.click();
       URL.revokeObjectURL(a.href);
       toast("已保存");
+      trackEvent("save_image", {
+        artist_id: lastResultId || "",
+      });
       resolve();
     }, "image/png");
   });
@@ -2061,5 +2079,10 @@ document.getElementById("btn-save-image").addEventListener("click", () => {
 
 document.getElementById("btn-copy-share").addEventListener("click", () => {
   const { body } = buildSharePayload();
-  copyText(body).then(() => toast("已复制"));
+  copyText(body).then(() => {
+    toast("已复制");
+    trackEvent("copy_share", {
+      artist_id: lastResultId || "",
+    });
+  });
 });

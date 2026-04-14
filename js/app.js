@@ -397,7 +397,7 @@ const ARTISTS = {
       },
       {
         line: "是的，我有见过我的梦。",
-        song: "《艳火》",
+        song: "《关于我爱你》",
         note: "理想与执念在同一条路上",
         neteaseSongId: "326703",
         albumNeteaseId: "32311",

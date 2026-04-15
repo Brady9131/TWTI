@@ -1470,6 +1470,7 @@ function showScreen(id) {
     const el = document.getElementById(sid);
     if (el) el.classList.toggle("hidden", sid !== id);
   });
+  if (typeof window.TWTI_onScreenShown === "function") window.TWTI_onScreenShown(id);
 }
 
 let currentIndex = 0;
@@ -1545,6 +1546,14 @@ function renderQuestion() {
 
   const prevBtn = document.getElementById("btn-prev");
   if (prevBtn) prevBtn.disabled = currentIndex === 0;
+  const quizEl = document.getElementById("screen-quiz");
+  if (
+    quizEl &&
+    !quizEl.classList.contains("hidden") &&
+    typeof window.TWTI_onScreenShown === "function"
+  ) {
+    window.TWTI_onScreenShown("screen-quiz");
+  }
 }
 
 function onSelect(opt) {
